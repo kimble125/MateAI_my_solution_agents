@@ -40,8 +40,11 @@ class MemoryStore:
         return self.cols[col].pop(id_, None) is not None
 
     def bulk_add(self, col: str, docs: List[dict]) -> int:
+        # _id 가 있으면 그 id로 덮어쓴다(같은 시드를 여러 번 넣어도 중복 없음)
         for d in docs:
-            self.add(col, d)
+            d = dict(d)
+            id_ = d.pop("_id", None) or uuid.uuid4().hex[:20]
+            self.cols[col][id_] = {**d, "created_at": _now(), "updated_at": _now()}
         return len(docs)
 
 
@@ -89,7 +92,10 @@ class FirestoreStore:
     def bulk_add(self, col: str, docs: List[dict]) -> int:
         batch, n = self.db.batch(), 0
         for d in docs:
-            batch.set(self.db.collection(col).document(), {**d, "created_at": _now(), "updated_at": _now()})
+            d = dict(d)
+            id_ = d.pop("_id", None)  # 시드는 날짜를 id로 써서 동시 실행에도 중복이 안 생긴다
+            ref = self.db.collection(col).document(id_) if id_ else self.db.collection(col).document()
+            batch.set(ref, {**d, "created_at": _now(), "updated_at": _now()})
             n += 1
             if n % 400 == 0:
                 batch.commit()

@@ -11,7 +11,7 @@ CSV_PATH = next((p for p in (_HERE.parents[2] / "data" / "inbound_visitors_month
 
 def load_csv(path: Path = CSV_PATH):
     with open(path, encoding="utf-8") as f:
-        return [{"date": r["date"], "value": float(r["value"]), "memo": r.get("memo", "")}
+        return [{"_id": "m" + r["date"][:7], "date": r["date"], "value": float(r["value"]), "memo": r.get("memo", "")}
                 for r in csv.DictReader(f)]
 
 
