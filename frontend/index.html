@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MateAI 데이터 비서 · 방한 관광 통계를 아는 AI</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="brand">MateAI <span>데이터 비서</span></div>
+  <nav>
+    <button class="tab active" data-tab="chat">채팅</button>
+    <button class="tab" data-tab="data">데이터 관리</button>
+    <button class="tab" data-tab="history">대화 기록</button>
+  </nav>
+  <button id="theme" title="다크 모드">🌙</button>
+</header>
+<div id="wake" class="banner hidden">서버를 깨우는 중이에요(무료 서버라 첫 요청은 최대 1분 걸려요)…</div>
+
+<section id="summary" class="card">
+  <h2>데이터 요약 <small>한국관광공사 방한 입국자 월별 통계</small></h2>
+  <div class="grid">
+    <div><b id="s-period">-</b><span>기간</span></div>
+    <div><b id="s-count">-</b><span>개수</span></div>
+    <div><b id="s-avg">-</b><span>월평균</span></div>
+    <div><b id="s-max">-</b><span>최고</span></div>
+    <div><b id="s-min">-</b><span>최저</span></div>
+    <div><b id="s-latest">-</b><span>최신(전년 동월 대비)</span></div>
+  </div>
+  <p id="s-trend" class="trend">추세: -</p>
+</section>
+
+<main>
+  <section id="tab-chat" class="pane">
+    <div id="conv-title" class="muted">새 대화</div>
+    <div id="messages"></div>
+    <div id="loading" class="hidden"><span class="dot"></span><span class="dot"></span><span class="dot"></span> 민우가 데이터를 보고 있어요…</div>
+    <form id="chat-form">
+      <input id="chat-input" maxlength="2000" placeholder="예: 요즘 외국인 관광객 늘었어? 가장 붐비는 달은?" autocomplete="off">
+      <button>보내기</button>
+    </form>
+    <div class="row"><button id="new-chat" class="ghost">새 대화</button>
+      <span class="muted">질문 예시:</span>
+      <button class="chip">최근 추세 어때?</button><button class="chip">가장 붐비는 달은?</button><button class="chip">코로나 때 얼마나 줄었어?</button></div>
+  </section>
+
+  <section id="tab-data" class="pane hidden">
+    <canvas id="chart" height="220"></canvas>
+    <form id="data-form" class="row">
+      <input type="hidden" id="d-id">
+      <input type="date" id="d-date" required>
+      <input type="number" id="d-value" min="0" step="1" placeholder="입국자 수" required>
+      <input id="d-memo" maxlength="500" placeholder="메모">
+      <button id="d-submit">추가</button>
+      <button type="button" id="d-cancel" class="ghost hidden">취소</button>
+    </form>
+    <div class="row"><a id="exp-csv" class="ghost btn">CSV 내보내기</a><a id="exp-json" class="ghost btn">JSON 내보내기</a>
+      <span id="d-msg" class="muted"></span></div>
+    <table><thead><tr><th>날짜</th><th>입국자 수</th><th>메모</th><th></th></tr></thead><tbody id="d-rows"></tbody></table>
+  </section>
+
+  <section id="tab-history" class="pane hidden">
+    <ul id="conv-list"></ul>
+  </section>
+</main>
+<footer>데이터: 한국관광공사 한국관광 데이터랩 한국관광통계(입국, 2010-01–2026-08) · <a id="docs-link" target="_blank">API 문서(Swagger)</a></footer>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

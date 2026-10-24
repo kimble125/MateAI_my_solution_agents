@@ -1,0 +1,28 @@
+:root{--bg:#f7f7fb;--fg:#111;--card:#fff;--muted:#666;--line:#e3e3ea;--accent:#ff6b4a;--me:#ffe9e3;--ai:#eef1ff}
+body.dark{--bg:#14151a;--fg:#f2f2f2;--card:#1f2028;--muted:#a0a0aa;--line:#33343d;--accent:#ff8a6e;--me:#4a2a22;--ai:#262a40}
+*{box-sizing:border-box}body{margin:0;font:16px/1.55 -apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:var(--bg);color:var(--fg)}
+header{display:flex;align-items:center;gap:16px;padding:12px 20px;background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0}
+.brand{font-weight:800;font-size:20px}.brand span{color:var(--accent)}
+nav{display:flex;gap:6px;flex:1}.tab{background:none;border:0;padding:8px 14px;border-radius:999px;color:var(--fg);cursor:pointer;font-size:15px}
+.tab.active{background:var(--accent);color:#fff}#theme{background:none;border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer}
+.banner{background:#fff3c4;color:#5a4400;padding:8px 20px}.hidden{display:none!important}
+.card,.pane{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:16px auto;max-width:960px;padding:16px 20px}
+.card h2{margin:0 0 10px;font-size:18px}.card small{color:var(--muted);font-weight:400;font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.grid div{background:var(--bg);border-radius:10px;padding:10px}.grid b{display:block;font-size:17px}.grid span{font-size:12px;color:var(--muted)}
+.trend{margin:10px 0 0;font-weight:600}
+#messages{min-height:260px;max-height:52vh;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:6px 0}
+.msg{max-width:80%;padding:10px 14px;border-radius:14px;white-space:pre-wrap}.msg.user{align-self:flex-end;background:var(--me)}
+.msg.assistant{align-self:flex-start;background:var(--ai)}.msg .meta{display:block;font-size:12px;color:var(--muted);margin-top:4px}
+#loading{color:var(--muted);padding:6px 0}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:3px;animation:b 1s infinite}
+.dot:nth-child(2){animation-delay:.15s}.dot:nth-child(3){animation-delay:.3s}@keyframes b{50%{opacity:.2}}
+form{display:flex;gap:8px;margin-top:8px}input{flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg);font-size:15px}
+#data-form input[type=date],#data-form input[type=number]{flex:0 0 170px}
+button,.btn{padding:9px 16px;border:0;border-radius:10px;background:var(--accent);color:#fff;cursor:pointer;font-size:15px;text-decoration:none}
+.ghost{background:none;border:1px solid var(--line);color:var(--fg)}.chip{background:var(--bg);color:var(--fg);border:1px solid var(--line);padding:6px 10px;font-size:13px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}.muted{color:var(--muted);font-size:14px}
+table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}th,td{border-bottom:1px solid var(--line);padding:7px;text-align:left}
+td button{padding:4px 9px;font-size:13px;margin-right:4px}#chart{width:100%;background:var(--bg);border-radius:10px}
+#conv-list{list-style:none;padding:0;margin:0}#conv-list li{display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--line);padding:10px 4px}
+#conv-list li .t{flex:1;cursor:pointer}#conv-list li .t:hover{color:var(--accent)}
+footer{text-align:center;color:var(--muted);font-size:13px;padding:16px}footer a{color:var(--accent)}
