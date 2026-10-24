@@ -2,7 +2,11 @@
 import csv
 from pathlib import Path
 
-CSV_PATH = Path(__file__).resolve().parents[3] / "data" / "inbound_visitors_monthly.csv"
+_HERE = Path(__file__).resolve()
+# backend/data(배포 루트가 backend일 때) → 저장소 루트 data 순서로 찾는다
+CSV_PATH = next((p for p in (_HERE.parents[2] / "data" / "inbound_visitors_monthly.csv",
+                             _HERE.parents[3] / "data" / "inbound_visitors_monthly.csv") if p.exists()),
+                _HERE.parents[2] / "data" / "inbound_visitors_monthly.csv")
 
 
 def load_csv(path: Path = CSV_PATH):
