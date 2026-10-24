@@ -48,7 +48,7 @@ MateAI 엔진이 이미 쓰는 공공 API(한국관광공사 TourAPI `apis.data.
 | **Firebase Firestore** | Google의 클라우드 문서형 데이터베이스. 서버를 꺼도 데이터가 남는다. | `data` 컬렉션(관광 통계 200개, CRUD 대상)과 `conversations` 컬렉션(대화 기록 저장·불러오기). | 프로젝트 `mateai-data-assistant`·DB(서울) 생성 완료. **서비스 계정 키를 서버 환경 변수에 넣기 전이라, 지금 배포본은 임시 메모리 저장소로 돈다.** |
 | **firebase-admin** | 서버가 Firestore에 접속하는 공식 파이썬 SDK. | `FIREBASE_SERVICE_ACCOUNT_JSON` 환경 변수로 로그인한다(키는 코드에 없음). | 코드 완료 (`services/store.py`) |
 | **OpenAI GPT API** | 대화형 AI 모델을 부르는 유료 API. | 시스템 프롬프트에 데이터 요약을 넣어 답하게 하고(컨텍스트 주입), 필요하면 도구 3개를 직접 부르게 한다(Function Calling). | 코드 완료. **`OPENAI_API_KEY`를 넣기 전이라 지금은 요약 숫자로 만든 정해진 답(오프라인 모드)을 낸다.** |
-| **Render** | 깃허브 저장소를 연결하면 서버를 띄워 주는 클라우드. 무료 등급은 15분 쉬면 잠들어 첫 요청이 늦다. | 과제 규정상 FastAPI 백엔드의 정식 배포처. `render.yaml`에 빌드·실행 명령과 환경 변수 목록을 적었다. | **진행 중**: 계정 가입이 이메일 인증 단계. 그 사이 같은 코드를 Vercel에 예비 배포했다. |
+| **Render** | 깃허브 저장소를 연결하면 서버를 띄워 주는 클라우드. 무료 등급은 15분 쉬면 잠들어 첫 요청이 늦다. | 과제 규정상 FastAPI 백엔드의 정식 배포처. `render.yaml`에 빌드·실행 명령과 환경 변수 목록을 적었다. | **대체**: 가입 인증 메일이 오지 않아 Vercel로 배포(10-1절). |
 | **Vercel** | 정적 웹사이트(HTML/CSS/JS)를 배포하는 클라우드. | 바닐라 프론트 배포. 빌드 때 `API_BASE_URL` 환경 변수로 백엔드 주소를 `config.js`에 쓴다. | 완료. https://mateai-data-assistant.vercel.app/ |
 | **python-dotenv** | `.env` 파일의 값을 환경 변수로 읽는 라이브러리. | 로컬 실행 때 키를 코드 밖 `.env`에 둔다(`.gitignore`로 커밋 금지). | 완료 |
 | **CORS 설정** | 다른 주소의 웹페이지가 API를 부를 수 있게 허용하는 브라우저 규칙. | `ALLOWED_ORIGINS`에 프론트·MateAI·trymateai 주소만 허용. | 완료 (실측: 프론트 주소에 `access-control-allow-origin` 응답) |
@@ -171,6 +171,13 @@ cd ../frontend && python3 -m http.server 5500   # http://localhost:5500 (config.
 2. **Render:** New › Blueprint → 이 저장소 선택(`render.yaml`) → `OPENAI_API_KEY`, `FIREBASE_SERVICE_ACCOUNT_JSON` 입력 → 배포 후 `/docs` 확인.
 3. **Vercel:** New Project → 이 저장소, Root Directory `frontend` → 환경 변수 `API_BASE_URL=<Render 주소>` → 배포.
 4. Render의 `ALLOWED_ORIGINS`에 Vercel 주소를 더한다.
+
+## 10-1. Render 대신 Vercel로 백엔드를 배포한 이유 (동료평가 참고)
+
+- 과제 규정 배포처는 Render다. 2026-10-24 Render 가입을 Google·GitHub 두 방법으로 시도했지만, 두 번 모두 이메일 인증 화면(https://dashboard.render.com/verify-email)에서 인증 메일이 오지 않아 계정을 쓸 수 없었다.
+- 그래서 **같은 FastAPI 코드를 Vercel Python 서버리스로 배포**했다(https://mateai-data-assistant-api.vercel.app/docs). 코드 수정은 진입 파일 `backend/index.py` 한 줄뿐이다.
+- Render 배포 설정은 `render.yaml`에 그대로 있어, 인증이 풀리면 New › Blueprint 한 번으로 옮길 수 있다.
+- 두 플랫폼의 차이: Render는 상시 서버(무료는 15분 쉬면 잠듦, 첫 요청 30–60초)이고, Vercel은 요청마다 함수가 뜨는 서버리스(첫 요청 몇 초)다. 그래서 대화 기록은 메모리가 아니라 **Firestore에 저장해야** 여러 함수 인스턴스 사이에서 유지된다.
 
 ## 11. 제출 스크린샷
 
