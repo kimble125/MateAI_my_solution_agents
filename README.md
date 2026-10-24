@@ -39,6 +39,29 @@ MateAI 엔진이 이미 쓰는 공공 API(한국관광공사 TourAPI `apis.data.
 - AI: OpenAI Chat Completions + **Function Calling** (`max_tokens` 400, 도구 호출 최대 3회)
 - Frontend: **바닐라 HTML/CSS/JavaScript**(프레임워크 없음) → **Vercel**
 
+## 3-1. 과제가 요구한 도구는 무엇이고, 이 프로젝트에서 무슨 일을 하나
+
+| 요구 도구 | 무엇인가 | 이 프로젝트에서 맡은 일 | 현재 상태 (2026-10-24 13:20) |
+|---|---|---|---|
+| **FastAPI** | 파이썬으로 웹 API 서버를 만드는 프레임워크. 코드에서 Swagger 문서(`/docs`)를 자동으로 만든다. | 데이터 CRUD·요약·대화 기록·채팅 API 전부. 라우터(HTTP)와 서비스(계산·저장·AI)를 나눴다. | 완료. https://mateai-data-assistant-api.vercel.app/docs |
+| **Pydantic** | 들어오는 JSON의 형식을 검사하는 파이썬 라이브러리. | 날짜 형식, 입국자 수 0 이상, 메모 500자, 질문 2,000자 제한. 틀리면 422 오류로 막는다. | 완료 (`backend/app/schemas.py`) |
+| **Firebase Firestore** | Google의 클라우드 문서형 데이터베이스. 서버를 꺼도 데이터가 남는다. | `data` 컬렉션(관광 통계 200개, CRUD 대상)과 `conversations` 컬렉션(대화 기록 저장·불러오기). | 프로젝트 `mateai-data-assistant`·DB(서울) 생성 완료. **서비스 계정 키를 서버 환경 변수에 넣기 전이라, 지금 배포본은 임시 메모리 저장소로 돈다.** |
+| **firebase-admin** | 서버가 Firestore에 접속하는 공식 파이썬 SDK. | `FIREBASE_SERVICE_ACCOUNT_JSON` 환경 변수로 로그인한다(키는 코드에 없음). | 코드 완료 (`services/store.py`) |
+| **OpenAI GPT API** | 대화형 AI 모델을 부르는 유료 API. | 시스템 프롬프트에 데이터 요약을 넣어 답하게 하고(컨텍스트 주입), 필요하면 도구 3개를 직접 부르게 한다(Function Calling). | 코드 완료. **`OPENAI_API_KEY`를 넣기 전이라 지금은 요약 숫자로 만든 정해진 답(오프라인 모드)을 낸다.** |
+| **Render** | 깃허브 저장소를 연결하면 서버를 띄워 주는 클라우드. 무료 등급은 15분 쉬면 잠들어 첫 요청이 늦다. | 과제 규정상 FastAPI 백엔드의 정식 배포처. `render.yaml`에 빌드·실행 명령과 환경 변수 목록을 적었다. | **진행 중**: 계정 가입이 이메일 인증 단계. 그 사이 같은 코드를 Vercel에 예비 배포했다. |
+| **Vercel** | 정적 웹사이트(HTML/CSS/JS)를 배포하는 클라우드. | 바닐라 프론트 배포. 빌드 때 `API_BASE_URL` 환경 변수로 백엔드 주소를 `config.js`에 쓴다. | 완료. https://mateai-data-assistant.vercel.app/ |
+| **python-dotenv** | `.env` 파일의 값을 환경 변수로 읽는 라이브러리. | 로컬 실행 때 키를 코드 밖 `.env`에 둔다(`.gitignore`로 커밋 금지). | 완료 |
+| **CORS 설정** | 다른 주소의 웹페이지가 API를 부를 수 있게 허용하는 브라우저 규칙. | `ALLOWED_ORIGINS`에 프론트·MateAI·trymateai 주소만 허용. | 완료 (실측: 프론트 주소에 `access-control-allow-origin` 응답) |
+
+## 3-2. 과제 목표 6가지를 이 코드로 설명하면
+
+1. **시계열 분석 → 요약 → 서비스 활용:** `services/summary.py`가 200개월치를 날짜순으로 정렬해 기간·개수·합계·평균·최대·최소를 내고, 최근 3개월 평균을 직전 3개월과 비교해 ±5%를 넘으면 상승/하락, 아니면 유지로 판정한다. 같은 함수를 `/api/data/summary`, 화면 요약 카드, 채팅 시스템 프롬프트가 함께 쓴다.
+2. **라우터/서비스 분리 기준:** 라우터(`routers/`)는 "어떤 주소로 무엇을 받아 어떤 모양으로 돌려주나"만, 서비스(`services/`)는 "계산·저장·AI 호출"만 한다. 그래서 요약 계산은 서버 없이 시험(`tests/test_summary.py`, 5개 통과)할 수 있고, 저장소를 Firestore↔메모리로 바꿔도 라우터는 그대로다.
+3. **Pydantic 검증 이유:** 잘못된 값(음수 입국자, `2026-13-01` 같은 날짜, 너무 긴 글)이 DB와 GPT까지 가면 통계가 틀어지고 비용이 든다. 입구에서 422로 막는다.
+4. **Firestore CRUD:** `store.add/list/update/delete`가 각각 `collection().document().set/stream/update/delete`를 부른다. 문서 id는 Firestore가 만든다. 비어 있으면 시작할 때 CSV 200개를 한 번 넣는다(`SEED_ON_EMPTY`).
+5. **컨텍스트 주입 원리:** GPT는 우리 데이터를 모른다. 그래서 매 질문마다 최신 요약을 시스템 프롬프트(`services/llm.py` SYSTEM_TEMPLATE)에 글자로 넣어 "이 숫자를 근거로 답하라"고 한다. 요약에 없는 것(달별 계절성 등)은 도구 호출로 더 가져온다.
+6. **CORS·환경 변수·키 관리 이유:** 키가 코드에 있으면 공개 저장소에서 누구나 가져가 요금을 쓴다. 그래서 키는 배포처의 환경 변수에만 두고, CORS는 우리 프론트 주소만 허용해 남의 사이트가 이 API를 마음대로 부르지 못하게 한다.
+
 ## 4. 구조와 분리 기준
 
 ```
@@ -151,7 +174,13 @@ cd ../frontend && python3 -m http.server 5500   # http://localhost:5500 (config.
 
 ## 11. 제출 스크린샷
 
-`docs/screenshots/`: ① 데이터 요약이 보이는 채팅(질문+답변) ② 데이터 관리(CRUD 1개 동작) ③ 대화 기록 불러오기 (배포 후 추가)
+| 화면 | 파일 |
+|---|---|
+| ① 데이터 요약이 보이는 채팅(질문+답변) | ![chat](docs/screenshots/chat.png) |
+| ② 데이터 관리(목록 200개·그래프·추가/수정/삭제) | ![data](docs/screenshots/data.png) |
+| ③ 대화 기록 | ![history](docs/screenshots/history.png) |
+
+지금 스크린샷은 오프라인 모드·메모리 저장소 상태다. 키를 넣으면 GPT 답과 Firestore 기반 대화 불러오기 화면으로 바꾼다.
 
 ## 12. 진행 상태 (2026-10-24)
 
