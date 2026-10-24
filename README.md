@@ -14,9 +14,10 @@
 |---|---|
 | 솔루션 메이트 플랫폼(입장) | https://trymateai.com/ |
 | MateAI 여행 데모 | https://mateai-web-jk4v-two.vercel.app/ |
-| 이 과제 프론트(Vercel) | (배포 후 기입) |
-| 백엔드 API(Render) | (배포 후 기입) |
-| Swagger UI | (배포 후 기입)/docs |
+| 이 과제 프론트(Vercel) | https://mateai-data-assistant.vercel.app/ |
+| 백엔드 API(Render, 규정 배포처) | https://mateai-data-assistant-api.onrender.com (배포 진행 중) |
+| 백엔드 API(Vercel, 예비) | https://mateai-data-assistant-api.vercel.app |
+| Swagger UI | https://mateai-data-assistant-api.vercel.app/docs |
 
 ## 2. 데이터
 
@@ -102,6 +103,7 @@ render.yaml             # Render Blueprint
 | get_statistics | "몇 월이 붐벼?", "연도별로 보면?"처럼 계절성·연도 합계가 필요할 때 |
 | get_recent_data(n) | "최근 6개월 중국인은?"처럼 원자료·국가별 메모가 필요할 때 |
 
+프론트는 먼저 Render 주소의 `/health`를 8초 동안 확인하고, 응답이 없으면 예비 서버(Vercel)로 바꾼다.
 프론트 채팅 말풍선 아래에 `도구: get_statistics`처럼 실제 호출한 도구가 표시된다.
 `OPENAI_API_KEY`가 없으면 요약 숫자로 만든 규칙 기반 답(`mode: offline`)을 돌려 흐름만 확인할 수 있다.
 
@@ -157,5 +159,7 @@ cd ../frontend && python3 -m http.server 5500   # http://localhost:5500 (config.
 - [x] FastAPI 데이터 CRUD 4 + summary, 대화 API 4, /api/chat(컨텍스트 주입 + 자동 저장)
 - [x] 바닐라 프론트(채팅·요약 카드·데이터 관리·대화 기록)
 - [x] 보너스: Function Calling 3개, statistics, 그래프, CSV/JSON 내보내기, 다크 모드
-- [ ] Firebase 프로젝트·Render·Vercel 배포, 배포 URL·스크린샷 기입
+- [x] Firebase 프로젝트 `mateai-data-assistant` + Firestore(asia-northeast3) 생성
+- [x] Vercel 프론트·예비 백엔드 배포(현재 메모리 저장소·오프라인 답)
+- [ ] Render 배포, 서비스 계정 키·OpenAI 키 입력(→ Firestore·GPT 모드), 스크린샷 기입
 - [ ] 보너스: MCP Server 또는 GPT Actions 연동

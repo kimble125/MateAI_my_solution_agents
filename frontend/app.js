@@ -1,5 +1,11 @@
 // MateAI 데이터 비서 프론트(바닐라 JS). 백엔드 주소는 config.js 의 window.API_BASE_URL.
-const API = (window.API_BASE_URL || "").replace(/\/$/, "");
+// 주 서버(Render)가 아직 없거나 잠들어 응답이 없으면 예비 서버(Vercel)로 바꾼다.
+let API = (window.API_BASE_URL || "").replace(/\/$/, "");
+const FALLBACK_API = "https://mateai-data-assistant-api.vercel.app";
+async function pickApi() {
+  try { const r = await fetch(API + "/health", { signal: AbortSignal.timeout(8000) }); if (r.ok) return; } catch {}
+  API = FALLBACK_API;
+}
 const $ = (s) => document.querySelector(s);
 const fmt = (n) => (n == null ? "-" : Math.round(n).toLocaleString("ko-KR"));
 let convId = null;
@@ -101,9 +107,11 @@ function drawChart() {
   ctx.fillText(`${fmt(max)}명`, 4, 14); ctx.fillText(rows[0].date.slice(0, 7), pad, H - 6);
   ctx.fillText(rows.at(-1).date.slice(0, 7), W - 70, H - 6); ctx.fillText("월별 방한 입국자 수 추이", W / 2 - 70, 14);
 }
+function setLinks() {
 $("#exp-csv").href = `${API}/api/data/export?format=csv`;
 $("#exp-json").href = `${API}/api/data/export?format=json`;
 $("#docs-link").href = `${API}/docs`;
+}
 
 // ---- 대화 기록 ----
 async function loadHistory() {
@@ -134,4 +142,4 @@ document.querySelectorAll(".tab").forEach((b) => (b.onclick = () => switchTab(b.
 if (localStorage.theme === "dark") document.body.classList.add("dark");
 $("#theme").onclick = () => { document.body.classList.toggle("dark"); localStorage.theme = document.body.classList.contains("dark") ? "dark" : "light"; drawChart(); };
 
-loadSummary().catch((e) => ($("#s-trend").textContent = `요약을 불러오지 못했어요: ${e.message} (API: ${API})`));
+pickApi().then(setLinks).then(loadSummary).catch((e) => ($("#s-trend").textContent = `요약을 불러오지 못했어요: ${e.message} (API: ${API})`));
