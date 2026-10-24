@@ -15,8 +15,7 @@
 | 솔루션 메이트 플랫폼(입장) | https://trymateai.com/ |
 | MateAI 여행 데모 | https://mateai-web-jk4v-two.vercel.app/ |
 | 이 과제 프론트(Vercel) | https://mateai-data-assistant.vercel.app/ |
-| 백엔드 API(Render, 규정 배포처) | https://mateai-data-assistant-api.onrender.com (배포 진행 중) |
-| 백엔드 API(Vercel, 예비) | https://mateai-data-assistant-api.vercel.app |
+| 백엔드 API(Vercel, Render 대체: 10-1절) | https://mateai-data-assistant-api.vercel.app |
 | Swagger UI | https://mateai-data-assistant-api.vercel.app/docs |
 
 ## 2. 데이터
@@ -45,9 +44,9 @@ MateAI 엔진이 이미 쓰는 공공 API(한국관광공사 TourAPI `apis.data.
 |---|---|---|---|
 | **FastAPI** | 파이썬으로 웹 API 서버를 만드는 프레임워크. 코드에서 Swagger 문서(`/docs`)를 자동으로 만든다. | 데이터 CRUD·요약·대화 기록·채팅 API 전부. 라우터(HTTP)와 서비스(계산·저장·AI)를 나눴다. | 완료. https://mateai-data-assistant-api.vercel.app/docs |
 | **Pydantic** | 들어오는 JSON의 형식을 검사하는 파이썬 라이브러리. | 날짜 형식, 입국자 수 0 이상, 메모 500자, 질문 2,000자 제한. 틀리면 422 오류로 막는다. | 완료 (`backend/app/schemas.py`) |
-| **Firebase Firestore** | Google의 클라우드 문서형 데이터베이스. 서버를 꺼도 데이터가 남는다. | `data` 컬렉션(관광 통계 200개, CRUD 대상)과 `conversations` 컬렉션(대화 기록 저장·불러오기). | 프로젝트 `mateai-data-assistant`·DB(서울) 생성 완료. **서비스 계정 키를 서버 환경 변수에 넣기 전이라, 지금 배포본은 임시 메모리 저장소로 돈다.** |
+| **Firebase Firestore** | Google의 클라우드 문서형 데이터베이스. 서버를 꺼도 데이터가 남는다. | `data` 컬렉션(관광 통계 200개, CRUD 대상)과 `conversations` 컬렉션(대화 기록 저장·불러오기). | 완료. 프로젝트 `mateai-data-assistant`, DB 서울(asia-northeast3). 배포본 `/health` = `store: firestore` |
 | **firebase-admin** | 서버가 Firestore에 접속하는 공식 파이썬 SDK. | `FIREBASE_SERVICE_ACCOUNT_JSON` 환경 변수로 로그인한다(키는 코드에 없음). | 코드 완료 (`services/store.py`) |
-| **OpenAI GPT API** | 대화형 AI 모델을 부르는 유료 API. | 시스템 프롬프트에 데이터 요약을 넣어 답하게 하고(컨텍스트 주입), 필요하면 도구 3개를 직접 부르게 한다(Function Calling). | 코드 완료. **`OPENAI_API_KEY`를 넣기 전이라 지금은 요약 숫자로 만든 정해진 답(오프라인 모드)을 낸다.** |
+| **OpenAI GPT API** | 대화형 AI 모델을 부르는 유료 API. | 시스템 프롬프트에 데이터 요약을 넣어 답하게 하고(컨텍스트 주입), 필요하면 도구 3개를 직접 부르게 한다(Function Calling). | 완료. 배포본 `/health` = `llm: openai`. 실측 질문 "가장 붐비는 달은?"에 `get_statistics`를 호출해 8월이라고 답함 |
 | **Render** | 깃허브 저장소를 연결하면 서버를 띄워 주는 클라우드. 무료 등급은 15분 쉬면 잠들어 첫 요청이 늦다. | 과제 규정상 FastAPI 백엔드의 정식 배포처. `render.yaml`에 빌드·실행 명령과 환경 변수 목록을 적었다. | **대체**: 가입 인증 메일이 오지 않아 Vercel로 배포(10-1절). |
 | **Vercel** | 정적 웹사이트(HTML/CSS/JS)를 배포하는 클라우드. | 바닐라 프론트 배포. 빌드 때 `API_BASE_URL` 환경 변수로 백엔드 주소를 `config.js`에 쓴다. | 완료. https://mateai-data-assistant.vercel.app/ |
 | **python-dotenv** | `.env` 파일의 값을 환경 변수로 읽는 라이브러리. | 로컬 실행 때 키를 코드 밖 `.env`에 둔다(`.gitignore`로 커밋 금지). | 완료 |
@@ -187,7 +186,7 @@ cd ../frontend && python3 -m http.server 5500   # http://localhost:5500 (config.
 | ② 데이터 관리(목록 200개·그래프·추가/수정/삭제) | ![data](docs/screenshots/data.png) |
 | ③ 대화 기록 | ![history](docs/screenshots/history.png) |
 
-지금 스크린샷은 오프라인 모드·메모리 저장소 상태다. 키를 넣으면 GPT 답과 Firestore 기반 대화 불러오기 화면으로 바꾼다.
+스크린샷은 2026-10-24 13:52 배포본(GPT + Firestore 모드)이다. ① 답 아래에 실제로 부른 도구(get_statistics, get_data_summary)가 표시된다. ③ 대화 목록에서 '불러오기'를 눌러 저장된 대화를 채팅 탭에 다시 띄운 화면이다.
 
 ## 12. 진행 상태 (2026-10-24)
 
@@ -196,6 +195,6 @@ cd ../frontend && python3 -m http.server 5500   # http://localhost:5500 (config.
 - [x] 바닐라 프론트(채팅·요약 카드·데이터 관리·대화 기록)
 - [x] 보너스: Function Calling 3개, statistics, 그래프, CSV/JSON 내보내기, 다크 모드
 - [x] Firebase 프로젝트 `mateai-data-assistant` + Firestore(asia-northeast3) 생성
-- [x] Vercel 프론트·예비 백엔드 배포(현재 메모리 저장소·오프라인 답)
-- [ ] Render 배포, 서비스 계정 키·OpenAI 키 입력(→ Firestore·GPT 모드), 스크린샷 기입
+- [x] Vercel 프론트·백엔드 배포, 서비스 계정 키·OpenAI 키 입력(Firestore·GPT 모드), 스크린샷
+- [ ] Render 배포(가입 인증 메일 미수신, 10-1절)
 - [ ] 보너스: MCP Server 또는 GPT Actions 연동
